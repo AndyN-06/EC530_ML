@@ -2,23 +2,23 @@ from flask import Flask, request, jsonify
 import tracemalloc
 import logging
 
-#data upload module: post
 def create_project():
-    # make project for data upload
+    # post project for data upload
     return jsonify({"message": "Project created successfully"}), 201
+def get_image(project_id):
+    # get image from project
+    return jsonify({"images": "List of images"}), 200
 
-#route project/image, GET,POST,DELETE,PUT
-def image():
-    if request.method == 'GET':
-        #get image
-        pass
-    elif request.method == 'POST':
-        #post label/class data
-        pass
-    elif request.method == 'DELETE':
-        #delete image
-        pass
-    elif request.method == 'PUT':
-        #put image into project
-        pass
-    return jsonify({"message": "Image operation"}), 200
+def post_label(project_id):
+    # post label/class data
+    return jsonify({"message": "Label/class data posted successfully"}), 201
+
+def delete_image(project_id, image_id):
+    # delete image from project
+    return jsonify({"message": "Image deleted successfully"}), 200
+
+def put_image(project_id, image_id):
+    # update image in project
+    return jsonify({"message": "Image updated successfully"}), 200
+
+
