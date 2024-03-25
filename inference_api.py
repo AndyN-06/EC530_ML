@@ -10,7 +10,8 @@ import cProfile
 import tracemalloc
 
 app = Flask(__name__)
-DATABASE = r'C:\Users\andre\Desktop\EC530_ML\ml.db'
+# DATABASE = r'C:\Users\andre\Desktop\EC530_ML\ml.db'
+DATABASE = '/usr/src/app/ml.db'
 db_queue = Queue()
 
 def get_db():

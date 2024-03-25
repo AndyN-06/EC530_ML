@@ -6,6 +6,7 @@ import time
 INFER_API_URL = 'http://127.0.0.1:5000/inference'
 DELETE_URL = 'http://127.0.0.1:5000/inference/{}'  # Assuming there's an endpoint to delete inferences
 DATABASE_PATH = r'C:\Users\andre\Desktop\EC530_ML\ml.db'
+# DATABASE_PATH = '/usr/src/app/ml.db'
 
 def post_inference_job(model_id, image_data):
     response = requests.post(INFER_API_URL, json={'model_id': model_id, 'image': image_data})
