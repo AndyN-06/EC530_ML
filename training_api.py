@@ -1,29 +1,114 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
+from sqlite3 import connect, Row
+from datetime import datetime
+import threading
+import time
+from queue import Queue
+from contextlib import contextmanager
 import tracemalloc
 import logging
 import cProfile
 
-def add_points():
-    logging.debug("adding training points")
-    # post training points
-    logging.debug("finished adding training points")
-    return jsonify({"message": "Training points added successfully"}), 200
+app = Flask(__name__)
+DATABASE = r'C:\Users\andre\Desktop\EC530_ML\ml.db'
+db_queue = Queue()
 
-def rem_points():
-    logging.debug("removing training points")
-    # delete training points
-    logging.debug("finished removing training points")
-    return jsonify({"message": "Training points removed successfully"}), 200
+def get_db():
+    if 'db' not in g:
+        g.db = connect(DATABASE, check_same_thread=False)
+        g.db.row_factory = Row
+    return g.db
 
-def change_param():
+@app.teardown_appcontext
+def close_connection(exception):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
+
+def query_db(query, args=(), one=False, commit=False):
+    db = get_db()
+    cur = db.execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    if commit:
+        db.commit()
+    return (rv[0] if rv else None) if one else rv
+
+@contextmanager
+def app_context():
+    with app.app_context():
+        yield
+
+def update_status(training_id, status):
+    print("update")
+    query_db('UPDATE Training SET status = ? WHERE training_id = ?', (status, training_id), commit=True)  
+
+def train(task_info):
+    print("training")
+    training_id = task_info["training_id"]
+    update_status(training_id, 'in progress')
+
+    # train
+    time.sleep(5)
+
+    update_status(training_id, 'finished')
+    print(f"Training {training_id} done at {datetime.now()}")
+
+def worker():
+    while True:
+        task_info = db_queue.get()
+        with app_context():
+            try:
+                train(task_info)
+            finally:
+                db_queue.task_done()
+
+@app.route('/configs', methods=['POST'])
+def new_param():
     logging.debug("changing training parameters")
-    # put changes to training parameters
+    
+    # post new training parameters
+    data = request.json
+    proj_id = data.get('project_id')
+    name = data.get('name')
+    val = data.get('value')
+    db = get_db()
+    db.execute('INSERT INTO Configurations (project_id, name, value) VALUES (?, ?, ?)', (proj_id, name, val))
+    db.commit()
+
     logging.debug("finished changing training parameters")
     return jsonify({"message": "Training parameters updated successfully"}), 200
 
+@app.route('/configs/<int:configuration_id>', methods=['DELETE'])
+def delete_param(configuration_id):
+    print("del")
+    logging.debug('deleting param')
+
+    # delete inference
+    query_db('DELETE FROM COnfigurations WHERE configuration_id = ?', [configuration_id], commit=True)
+
+    logging.debug('inference deleted')
+    return jsonify({"message": "Inference deleted successfully"}), 200
+
+@app.route('/training', methods=['POST'])
 def start_training():
+    print("post")
     logging.debug("started training")
+    
     # post new training session
+    data = request.json
+    proj_id = data.get('project_id')
+    dataset = data.get('dataset_id')
+
+    with get_db() as db:
+        cur = db.execute('''INSERT INTO Training (project_id, start_time, status) VALUES (?, ?, 'pending')''', (proj_id, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        db.commit()
+        training_id = cur.lastrowid
+        cur.close()
+
+    task_info = {"training_id": training_id, "dataset_id": dataset}    
+    db_queue.put(task_info)
+
     return jsonify({"message": "Training started successfully"}), 202
 
 def stop_training():
@@ -36,18 +121,42 @@ def restart_training():
     # put resume or restart training
     return jsonify({"message": "Training restarted successfully"}), 202
 
-def get_status():
+@app.route('/training/<int:training_id>', methods=['GET'])
+def get_status(training_id):
     logging.debug("getting status of training")
+    
     # get status of training
-    logging.debug("got status of training")
-    return jsonify({"status": "Training status"}), 200
+    query = 'SELECT status FROM Training WHERE training_id = ?'
+    row = query_db(query, [training_id], one=True)
+    if row is None:
+        return jsonify({"error": "Training not found"}), 404
+    status = row['status']
+    logging.debug('training retrieved')
+    return jsonify({"training": {"status": status}}), 200
 
+@app.route('/training/<int:training_id>/result', methods=['GET'])
 def get_results():
     logging.debug("getting results of training")
+    
     # get results of training
+    row = query_db('SELECT result FROM Training WHERE training_id = ?', [training_id], one=True)
+    if row is None:
+        return jsonify({"error": "Training not found"}), 404
+    result = row['result']
     logging.debug("got results of training")
-    return jsonify({"results": "Training results"}), 200
+    return jsonify({"result": result}), 200
 
+@app.route('/training/<int:training_id>', methods=['DELETE'])
+def delete_training(training_id):
+    query_db('DELETE FROM Training WHERE training_id = ?', [training_id])
+    return jsonify({"message": "Training deleted successfully"}), 202
+
+threading.Thread(target=worker, daemon=True).start()
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+"""
 tracemalloc.start()
 cProfile.run('add_points()')
 cProfile.run('rem_points()')
@@ -62,3 +171,4 @@ snapshot = tracemalloc.take_snapshot()
 top_stats = snapshot.statistics('lineno')
 for stat in top_stats[:10]:
     print(stat)
+"""
