@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify, g, Blueprint, current_app
 from sqlite3 import connect, Row
 from datetime import datetime
 import threading
@@ -8,9 +8,11 @@ from contextlib import contextmanager
 import tracemalloc
 import logging
 import cProfile
+import os
 
-app = Flask(__name__)
-DATABASE = r'C:\Users\andre\Desktop\EC530_ML\ml.db'
+DB = 'ml.db'
+DATABASE = os.path.join(os.path.dirname(__file__), DB)
+train_blueprint = Blueprint('train', __name__)
 db_queue = Queue()
 
 def get_db():

@@ -34,7 +34,8 @@ CREATE TABLE Datasets (
 CREATE TABLE Images (
     image_id INTEGER PRIMARY KEY AUTOINCREMENT,
     project_id INTEGER NOT NULL,
-    file_path TEXT NOT NULL,
+    image BLOB NOT NULL,
+    label TEXT,
     uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES Projects(project_id)
 );

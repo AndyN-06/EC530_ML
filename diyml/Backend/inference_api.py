@@ -41,11 +41,9 @@ def app_context():
         yield
 
 def update_status(inference_id, status):
-    print("update")
     query_db('UPDATE Inferences SET status = ? WHERE inference_id = ?', (status, inference_id), commit=True)
 
 def do_inference(task_info):
-    print("do infer")
     inference_id = task_info["inference_id"]
     update_status(inference_id, 'in progress')
     # Simulate a long-running inference task
@@ -55,7 +53,6 @@ def do_inference(task_info):
 
 
 def worker():
-    print("doing in back")
     while True:
         task_info = db_queue.get()
         with app_context():
@@ -66,7 +63,6 @@ def worker():
 
 @infer_blueprint.route('/inference', methods=['POST'])
 def post_inference():
-    print("post")
     data = request.json
     model_id = data.get('model_id')
     image_id = 1  # Dummy value for example purposes
@@ -86,7 +82,6 @@ def post_inference():
 
 @infer_blueprint.route('/inference/<int:inference_id>', methods=['GET'])
 def get_inference(inference_id):
-    print("get")
     logging.debug('getting inference')
     # get inference status and result
     query = 'SELECT status, result FROM Inferences WHERE inference_id = ?'
@@ -101,7 +96,6 @@ def get_inference(inference_id):
 
 @infer_blueprint.route('/inference/<int:inference_id>', methods=['DELETE'])
 def delete_inference(inference_id):
-    print("del")
     logging.debug('deleting inference')
 
     # delete inference

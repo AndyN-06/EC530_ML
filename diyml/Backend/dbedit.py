@@ -1,7 +1,9 @@
 import sqlite3
+import os
 
 def main():
-    db_path = r'C:\Users\andre\Desktop\EC530_ML\ml.db'
+    DB = 'ml.db'
+    db_path = os.path.join(os.path.dirname(__file__), DB)
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 

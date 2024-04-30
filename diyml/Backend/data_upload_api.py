@@ -1,25 +1,33 @@
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify, g, Blueprint, current_app
 import sqlite3
 import tracemalloc
 import logging
 import cProfile
 from datetime import datetime
+import os
 
+# upload image for training with label
+# upload image for testing without label
+# remove image from database
+# create new project
+# edit image label
 
-DATABASE = r'C:\Users\andre\Desktop\EC530_ML\ml.db'
-app = Flask(__name__)
+# configure logging
+logging.basicConfig(level=logging.DEBUG)
 
+# database path
+DB = 'ml.db'
+DATABASE = os.path.join(os.path.dirname(__file__), DB)
+
+# flask app blueprint
+upload_blueprint = Blueprint('upload', __name__)
+
+### database access helper functions ###
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
     return db
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
 
 def query_db(query, args=(), one=False):
     cur = get_db().execute(query, args)
@@ -27,64 +35,100 @@ def query_db(query, args=(), one=False):
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
-@app.route('/projects', methods=['POST'])
+
+### data upload functions ###
+@upload_blueprint.route('/projects', methods=['POST'])
 def create_project(user_id):
-    logging.debug('creating project')
+    current_app.logger.info("creating project")
+    
+    try:
+        data = request.json
+        name = data.get("name")
 
-    # post project for data upload
-    name = request.json["name"]
-    date_made = datetime.now().date()
-    db = get_db()
-    db.execute('INSERT INTO Projects (user_id, name, created) VALUES (?, ?, ?)', (user_id, name, date_made))
-    db.commit()
+        if not name:
+            return jsonify({"error": "Name required"}), 400
+        
+        db = get_db()
+        db.execute('INSERT INTO Projects (user_id, name) VALUES (?, ?)', (user_id, name))
+        db.commit()
 
-    logging.debug('project created')
-    return jsonify({"message": "Project created successfully"}), 201
+        current_app.logger.info("project created")
+        return jsonify({"message": "Project created successfully"}), 201
+    except Exception as e:
+        current_app.logger.error(str(e))
+        return jsonify({"error": "Internal Server Error"}), 500
+    
+@upload_blueprint.route('/upload/train', methods=['POST'])
+def upload_train(project_id):
+    current_app.logger.info("uploading image")
 
-@app.route('/images/<int:project_id>', methods=['GET'])
-def get_image(project_id):
-    logging.debug('getting image')
+    try:
+        file = request.files['file']
+        img = file.read()
+        data = request.json
+        label = data.get("label")
 
-    # get image from project
-    db = get_db()
-    imgs = db.execute('SELECT image_id FROM Images WHERE project_id = ?', (project_id,)).fetchall()
+        if not img or not label:
+            return jsonify({"error": "Image and label are required"}), 400
 
-    logging.debug('image retrieved')
-    return jsonify({"images": imgs}), 200
+        db = get_db()
+        db.execute('INSERT INTO Images (project_id, image, label) VALUES (?, ?, ?)', (project_id, img, label))
+        db.commit()
 
-@app.route('/labels/<int:project_id>', methods=['POST'])
-def post_label(project_id):
-    logging.debug('adding label')
+        current_app.logger.info("image uploaded")
+        return jsonify({"message": "Image updated successfully"}), 200
+    except Exception as e:
+        current_app.logger.error(str(e))
+        return jsonify({"error": "Internal Server Error"}), 500
 
-    # post label/class data
-    data = request.json
-    db = get_db()
-    db.execute('INSERT INTO Labels (image_id, label) VALUES (?, ?)', (data['image_id'], data['label']))
-    db.commit()
-
-    logging.debug('label added')
-    return jsonify({"message": "Label/class data posted successfully"}), 201
-
-def delete_image(project_id, image_id):
-    logging.debug('deleting image')
-    # delete image from project
-    logging.debug('image deleted')
-    return jsonify({"message": "Image deleted successfully"}), 200
-
-def put_image(project_id, image_id):
-    logging.debug('adding image')
+@upload_blueprint.route('/upload/test', methods=['POST'])
+def upload_test(project_id):
     # update image in project
-    logging.debug('image added')
     return jsonify({"message": "Image updated successfully"}), 200
 
-tracemalloc.start()
-cProfile.run('create_project()')
-cProfile.run('get_image()')
-cProfile.run('post_label()')
-cProfile.run('delete_image()')
-cProfile.run('put_image()')
-snapshot = tracemalloc.take_snapshot()
+@upload_blueprint.route('/image/<int:image_id>', methods=['DELETE'])
+def del_image(image_id):
+    current_app.logger.info("deleting image")
+    try:
+        db = get_db()
+        db.execute('DELETE FROM Images WHERE image_id = ?', (image_id,))
+        db.commit()
+        
+        current_app.logger.info("image deleted")
+        return jsonify({"message": "Image deleted successfully"}), 200
+    except Exception as e:
+        current_app.logger.error(str(e))
+        return jsonify({"error": "Internal Server Error"}), 500
 
-top_stats = snapshot.statistics('lineno')
-for stat in top_stats[:10]:
-    print(stat)
+@upload_blueprint.route('/image/<int:image_id>/label', methods=['PUT'])
+def edit_label(image_id):
+    current_app.logger.info("changing label")
+
+    # post label/class data
+    try:
+        data = request.json
+        label = data.get("label")
+        if not label:
+            return jsonify({"error": "Label is required"}), 400
+        
+        db = get_db()
+        db.execute('UPDATE Images SET label = ? WHERE image_id = ?', (label, image_id))
+        db.commit()
+        
+        current_app.logger.info("label changed")
+        return jsonify({"message": "Label updated successfully"}), 200
+    except Exception as e:
+        current_app.logger.error(str(e))
+        return jsonify({"error": "Internal Server Error"}), 500
+    
+# tracemalloc.start()
+# cProfile.run('create_project()')
+# cProfile.run('get_image()')
+# cProfile.run('post_label()')
+# cProfile.run('delete_image()')
+# cProfile.run('put_image()')
+# snapshot = tracemalloc.take_snapshot()
+
+# top_stats = snapshot.statistics('lineno')
+# for stat in top_stats[:10]:
+#     print(stat)

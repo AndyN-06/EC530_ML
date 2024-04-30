@@ -1,14 +1,17 @@
-from flask import Flask, request, jsonify, g, Blueprint
+from flask import Flask, request, jsonify, g, Blueprint, current_app
 import sqlite3
 import tracemalloc
 import logging
 import cProfile
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
 
+# configure logging
+logging.basicConfig(level=logging.DEBUG)
 
-DATABASE = r'C:\Users\andre\Desktop\EC530_ML\diyml\Backend\ml.db'
-
+DB = 'ml.db'
+DATABASE = os.path.join(os.path.dirname(__file__), DB)
 auth_blueprint = Blueprint('auth', __name__)
 
 def get_db():
@@ -16,12 +19,6 @@ def get_db():
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
     return db
-
-# @auth_blueprint.teardown_appcontext
-# def close_connection(exception):
-#     db = getattr(g, '_database', None)
-#     if db is not None:
-#         db.close()
 
 def query_db(query, args=(), one=False):
     cur = get_db().execute(query, args)
@@ -31,22 +28,26 @@ def query_db(query, args=(), one=False):
 
 @auth_blueprint.route('/users', methods=['POST'])
 def new_user():
-    logging.debug('creating new user')
+    print("1", flush=True)
+    data = request.json
+    current_app.logger.info(f'Received username: {data.get("username")}')
+    current_app.logger.info(f'Received password: {data.get("password")}')
+    current_app.logger.info(f'Received email: {data.get("email")}')
 
     # post new user
-    username = request.json.get('username')
-    password = request.json.get('password')
-    email = request.json.get('email')
+    username = data.get('username')
+    password = data.get('password')
+    email = data.get('email')
 
-    if (query_db('SELECT id FROM Users WHERE username = ?', [username], one=True)):
+    if (query_db('SELECT user_id FROM Users WHERE username = ?', [username], one=True)):
         return jsonify({"error: Username not available"}), 409
     
-    if (query_db('SELECT id FROM Users WHERE email = ?', [email], one=True)):
+    if (query_db('SELECT user_id FROM Users WHERE email = ?', [email], one=True)):
         return jsonify({"error: There is already an account associated with this email"}), 409
 
-    hash_pass = generate_password_hash(password)
+    # hash_pass = generate_password_hash(password)
     db = get_db()
-    db.execute('INSERT INTO Users (username, password, email) VALUES (?, ?, ?)', (username, hash_pass, email))
+    db.execute('INSERT INTO Users (username, password, email, active) VALUES (?, ?, ?, 0)', (username, password, email))
     db.commit()
 
     logging.debug('user created')
@@ -54,15 +55,16 @@ def new_user():
 
 @auth_blueprint.route('/login', methods=['POST'])
 def login():
+    print("login")
     username = request.json.get('username')
     password = request.json.get('password')
 
     if not username or not password:
         return jsonify({"error: Please enter Username and Password"}), 400
 
-    user = query_db('SELECT * FROM Users WHERE username = ?', [username], one=True)
+    correct = query_db('SELECT * FROM Users WHERE username = ? AND password = ?', [username, password], one=True)
 
-    if user and check_password_hash(user['password'], password):
+    if correct:
         db = get_db()
         db.execute('UPDATE Users SET active = 1, last_login = ? WHERE username = ?', (datetime.now().isoformat(), username))
         db.commit()
