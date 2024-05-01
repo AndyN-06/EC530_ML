@@ -20,16 +20,6 @@ CREATE TABLE Projects (
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 
-CREATE TABLE Datasets (
-    dataset_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    file_path TEXT NOT NULL,
-    uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES Projects(project_id)
-);
-
 -- Images Table
 CREATE TABLE Images (
     image_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,14 +58,6 @@ CREATE TABLE Training (
     FOREIGN KEY (project_id) REFERENCES Projects(project_id)
 );
 
-CREATE TABLE Configurations (
-    configuration_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    value INTEGER,
-    FOREIGN KEY (project_id) REFERENCES Projects(project_id)
-);
-
 -- Models Table
 CREATE TABLE Models (
     model_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -89,12 +71,10 @@ CREATE TABLE Models (
 CREATE TABLE Inferences (
     inference_id INTEGER PRIMARY KEY AUTOINCREMENT,
     model_id INTEGER NOT NULL,
-    image_id INTEGER NOT NULL,
-    status TEXT NOT NULL,
-    result TEXT,
+    image_path TEXT NOT NULL,
+    result FLOAT,
     inferred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (model_id) REFERENCES Models(model_id),
-    FOREIGN KEY (image_id) REFERENCES Images(image_id)
+    FOREIGN KEY (model_id) REFERENCES Models(model_id)
 );
 
 -- Test Model Table
@@ -105,13 +85,4 @@ CREATE TABLE Tests (
     test_results TEXT,
     tested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (model_id) REFERENCES Models(model_id)
-);
-
--- Reports Table
-CREATE TABLE Reports (
-    report_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    session_id INTEGER NOT NULL,
-    report_content TEXT NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES Training_Sessions(session_id)
 );

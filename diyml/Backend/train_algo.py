@@ -26,10 +26,10 @@ def train(project_id):
     for image, label in rows:
         img = Image.open(io.BytesIO(image))
         img = img.resize((128, 128))
-        img_array = np.arraY(img)
+        img_array = np.array(img)
         images.append(img_array)
 
-        labels.append(1 if label == 'cat' else 0)
+        labels.append(1)
 
     # normalize data
     images = np.array(images) / 255.0
@@ -47,10 +47,10 @@ def train(project_id):
 
     # make the model
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    model.fit(images, labels, epochs=10, batch_size=32)
+    model.fit(images, labels, epochs=10)
 
-    model.save('catModel.h5')
-    with open('catModel.h5', 'rb') as f:
+    model.save('Model.h5')
+    with open('Model.h5', 'rb') as f:
         model_blob = f.read()
 
     cursor.execute("INSERT INTO Models (project_id, model) VALUES (?, ?)", (project_id, model_blob))
