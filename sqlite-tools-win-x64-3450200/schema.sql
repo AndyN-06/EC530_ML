@@ -79,10 +79,10 @@ CREATE TABLE Configurations (
 -- Models Table
 CREATE TABLE Models (
     model_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    session_id INTEGER NOT NULL,
-    model_file_path TEXT NOT NULL,
+    project_id INTEGER NOT NULL,
+    model BLOB,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES Training_Sessions(session_id)
+    FOREIGN KEY (project_id) REFERENCES Projects(project_id)
 );
 
 -- Inferences Table
