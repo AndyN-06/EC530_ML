@@ -28,7 +28,6 @@ def query_db(query, args=(), one=False):
 
 @auth_blueprint.route('/users', methods=['POST'])
 def new_user():
-    print("1", flush=True)
     data = request.json
     current_app.logger.info(f'Received username: {data.get("username")}')
     current_app.logger.info(f'Received password: {data.get("password")}')
@@ -50,12 +49,12 @@ def new_user():
     db.execute('INSERT INTO Users (username, password, email, active) VALUES (?, ?, ?, 0)', (username, password, email))
     db.commit()
 
-    logging.debug('user created')
+    current_app.logger.info('user created')
     return jsonify({"message": "User created"}), 201
 
 @auth_blueprint.route('/login', methods=['POST'])
 def login():
-    print("login")
+    current_app.logger.info('logging in')
     username = request.json.get('username')
     password = request.json.get('password')
 
@@ -74,6 +73,7 @@ def login():
 
 @auth_blueprint.route('/logout', methods=['POST'])
 def logout():
+    current_app.logger.info('logging out')
     user_id = request.json.get('user_id')
 
     if not user_id:
@@ -89,14 +89,13 @@ def logout():
 
 @auth_blueprint.route('/users/<int:user_id>', methods=['DELETE'])
 def del_user(user_id):
-    logging.debug('deleting user')
+    current_app.logger.info('deleting user')
 
     # delete user and their token/s
     db = get_db()
     db.execute('DELETE FROM Users WHERE user_id = ?' [user_id])
     db.commit()
 
-    logging.debug('user deleted')
     return jsonify({"message": "User deleted successfully"}), 200
 
 """

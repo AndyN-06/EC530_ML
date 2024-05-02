@@ -16,7 +16,7 @@ def train(project_id):
     cursor = conn.cursor()
 
     # get data from database
-    cursor.execute("SELECT image, label FROM Images WHERE project_id = ?", project_id)
+    cursor.execute("SELECT image, label FROM Images WHERE project_id = ?", (project_id))
     rows = cursor.fetchall()
 
     # lists to hold images and labels
@@ -24,12 +24,15 @@ def train(project_id):
     labels = []
 
     for image, label in rows:
-        img = Image.open(io.BytesIO(image))
-        img = img.resize((128, 128))
-        img_array = np.array(img)
-        images.append(img_array)
+        try:
+            img = Image.open(io.BytesIO(image))
+            img = img.resize((128, 128))
+            img_array = np.array(img)
+            images.append(img_array)
 
-        labels.append(1)
+            labels.append(1)
+        except Exception as e:
+            print(f"Error processing image: {e}")
 
     # normalize data
     images = np.array(images) / 255.0
@@ -49,11 +52,11 @@ def train(project_id):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     model.fit(images, labels, epochs=10)
 
-    model.save('Model.h5')
-    with open('Model.h5', 'rb') as f:
-        model_blob = f.read()
+    model_blob = io.BytesIO()
+    model.save(model_blob)
+    model_blob.seek(0)
 
-    cursor.execute("INSERT INTO Models (project_id, model) VALUES (?, ?)", (project_id, model_blob))
+    cursor.execute("INSERT INTO Models (project_id, model) VALUES (?, ?)", (project_id, model_blob.read()))
     cursor.commit()
     conn.close()
 

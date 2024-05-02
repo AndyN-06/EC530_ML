@@ -34,7 +34,7 @@ def query_db(query, args=(), one=False, commit=False):
 
 @contextmanager
 def app_context():
-    with infer_blueprint.app_context():
+    with current_app.app_context():
         yield
 
 def update_status(inference_id, status):
@@ -82,7 +82,7 @@ def post_inference(model_id, project_id):
 
 @infer_blueprint.route('/inference/<int:inference_id>', methods=['GET'])
 def get_results(inference_id):
-    logging.debug('getting inference')
+    # logging.debug('getting inference')
     
     # get inference status and result
     query = 'SELECT status, result FROM Inferences WHERE inference_id = ?'
@@ -92,22 +92,24 @@ def get_results(inference_id):
     # Assuming 'result' could be None if inference is not finished yet
     status, result = row
     
-    logging.debug('inference retrieved')
+    # logging.debug('inference retrieved')
     return jsonify({"inference": {"status": status, "result": result}}), 200
-
-
-@infer_blueprint.route('/inference/<int:inference_id>', methods=['DELETE'])
-def delete_inference(inference_id):
-    logging.debug('deleting inference')
-
-    # delete inference
-    query_db('DELETE FROM Inferences WHERE inference_id = ?', [inference_id], commit=True)
-
-    logging.debug('inference deleted')
-    return jsonify({"message": "Inference deleted successfully"}), 200
 
 # Start the worker thread
 threading.Thread(target=worker, daemon=True).start()
+
+
+# @infer_blueprint.route('/inference/<int:inference_id>', methods=['DELETE'])
+# def delete_inference(inference_id):
+#     logging.debug('deleting inference')
+
+#     # delete inference
+#     query_db('DELETE FROM Inferences WHERE inference_id = ?', [inference_id], commit=True)
+
+#     logging.debug('inference deleted')
+#     return jsonify({"message": "Inference deleted successfully"}), 200
+
+
 
 """
 tracemalloc.start()

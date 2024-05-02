@@ -33,7 +33,7 @@ def query_db(query, args=(), one=False, commit=False):
     return (rv[0] if rv else None) if one else rv
 
 
-### Queue Functions ###
+### Queue Helper Functions ###
 @contextmanager
 def app_context():
     with current_app.app_context():
@@ -73,6 +73,8 @@ def start_training(project_id):
     db_queue.put(project_id)
 
     return jsonify({"message": "Training started successfully"}), 202
+
+threading.Thread(target=worker, daemon=True).start()
 
 # @train_blueprint.route('/configs', methods=['POST'])
 # def new_param():
@@ -130,8 +132,6 @@ def start_training(project_id):
 # def delete_training(training_id):
 #     query_db('DELETE FROM Training WHERE training_id = ?', [training_id])
 #     return jsonify({"message": "Training deleted successfully"}), 202
-
-threading.Thread(target=worker, daemon=True).start()
 
 """
 tracemalloc.start()
