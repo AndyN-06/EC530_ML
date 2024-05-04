@@ -11,7 +11,7 @@ def main():
     print("1. Users")
     print("2. Projects")
     print("3. Images")
-    print("4. Labelss")
+    print("4. Labels")
     print("5. Image_Labels")
     print("6. Training")
     print("7. Models")

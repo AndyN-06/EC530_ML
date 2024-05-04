@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import axios from 'axios';
-import loginPage from './login'
-import registerPage from './register'
-import homePage from './homepage'
+import LoginPage from './login'
+import RegisterPage from './register'
+import HomePage from './homepage'
+import AppName from './AppName';
+import ProjectPage from './projects';
+import TestPage from './test'
+import ImagePage from './imageupload'
 import './App.css';
 
 function App() {
@@ -12,62 +16,26 @@ function App() {
   const [email, setEmail] = useState('');
   // const [creatingUser, setCreatingUser] = useState(false);
 
-  
+
 
   return (
     <Router>
       <div>
-        <switch>
-          
-        </switch>
+        <AppName />
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/homepage" element={<HomePage />} />
+            <Route path="/project" element={<ProjectPage />} />
+            <Route path="/test" element={<TestPage />} />
+            <Route path="/image" element={<ImagePage />} />
+
+            <Route path="/" element={<LoginPage />} />
+          </Routes>
       </div>
     </Router>
   )
 
-  // return (
-  //   <div className="App">
-  //     <div className="login-container">
-  //       {creatingUser ? (
-  //         <form onSubmit={handleCreateUser}>
-  //           <input type="text" placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-  //           <input type="password" placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-  //           <input type="email" placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-  //           <button type="submit">Create User</button>
-  //         </form>
-  //       ) : (
-  //         <form onSubmit={handleLogin}>
-  //           <input type="text" placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-  //           <input type="password" placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-  //           <button type="submit">Login</button>
-  //         </form>
-  //       )}
-  //       <button onClick={toggleForm}>{creatingUser ? 'Go to Login' : 'Create New User'}</button>
-  //     </div>
-  //   </div>
-  // );
 }
 
 export default App;
-
-
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
