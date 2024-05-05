@@ -40,7 +40,6 @@ def app_context():
 def update_status(inference_id, status):
     query_db('UPDATE Inferences SET status = ? WHERE inference_id = ?', (status, inference_id), commit=True)
 
-
 def worker():
     while True:
         task_info = db_queue.get()
@@ -61,7 +60,7 @@ def do_inference(task_info):
 
 
 @infer_blueprint.route('/inference', methods=['POST'])
-def post_inference(model_id, project_id):
+def post_inference():
     data = request.files['file']
     folder = 'uploads'
     folder = os.path.join(os.path.dirname(__file__), folder)
@@ -69,13 +68,13 @@ def post_inference(model_id, project_id):
     data.save(img_path)
 
     with get_db() as db:
-        cur = db.execute('INSERT INTO Inferences (model_id, image_path) VALUES (?, ?)',(model_id, img_path))
+        cur = db.execute('INSERT INTO Inferences (image_path) VALUES (?)',(img_path,))
         db.commit()
         inference_id = cur.lastrowid
         cur.close()
 
     # Add the task to the queue
-    task_info = {"inference_id": inference_id, "project_id": project_id, "image_path": img_path}
+    task_info = {"inference_id": inference_id, "image_path": img_path}
     db_queue.put(task_info)
 
     return jsonify({"message": "Inference task submitted.", "inference_id": inference_id}), 202

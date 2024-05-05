@@ -220,7 +220,8 @@ button:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  height: 680px;
+  background-color: #f4f4f4;
 }
 
 .image-list {
@@ -234,4 +235,36 @@ button:hover {
 
 input[type="file"], input[type="text"] {
   padding: 8px;
+}
+
+/* TEST PAGE STYLES */
+.test-page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #f4f4f4;
+  height: 650px;
+}
+
+.test-controls {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 600px; /* Adjust width as needed */
+  margin: 20px;
+}
+
+input[type="file"] {
+  flex: 1;
+  margin-right: 20px; /* Space between the file input and the button */
+}
+
+.results-box {
+  width: 100%;
+  max-width: 600px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-top: 20px;
+  text-align: center;
 }

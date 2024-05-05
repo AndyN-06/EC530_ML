@@ -70,7 +70,7 @@ CREATE TABLE Models (
 -- Inferences Table
 CREATE TABLE Inferences (
     inference_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    model_id INTEGER NOT NULL,
+    model_id INTEGER,
     image_path TEXT NOT NULL,
     result FLOAT,
     inferred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

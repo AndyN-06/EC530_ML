@@ -103,9 +103,8 @@ def upload_train():
     try:
         file = request.files['file']
         img = file.read()
-        data = request.json
-        label = data.get("label")
-        name = data.get("name")
+        label = request.form["label"]
+        name = request.form["name"]
 
         if not img or not label:
             return jsonify({"error": "Image and label are required"}), 400
@@ -133,22 +132,22 @@ def get_images():
         } for image in images]
 
         current_app.logger.info("Images fetched successfully")
-        return jsonify({"success": True, "projects": images_data})
+        return jsonify({"success": True, "images": images_data})
     except Exception as e:
         current_app.logger.error("Failed to fetch images: " + str(e))
         return jsonify({"error": "Internal Server Error"}), 500
 
 @upload_blueprint.route('/upload/test', methods=['POST'])
-def upload_test(project_id):
+def upload_test():
     # update image in project
     return jsonify({"message": "Image updated successfully"}), 200
 
 @upload_blueprint.route('/image/<int:image_id>', methods=['DELETE'])
-def del_image(image_id):
+def del_image(image_name):
     current_app.logger.info("deleting image")
     try:
         db = get_db()
-        db.execute('DELETE FROM Images WHERE image_id = ?', (image_id,))
+        db.execute('DELETE FROM Images WHERE name = ?', (image_name,))
         db.commit()
         
         current_app.logger.info("image deleted")

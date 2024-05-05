@@ -9,7 +9,7 @@ import tracemalloc
 import logging
 import cProfile
 import os
-from train_algo import train
+from train_algo import train as algo_train
 
 DB = 'ml.db'
 DATABASE = os.path.join(os.path.dirname(__file__), DB)
@@ -39,38 +39,34 @@ def app_context():
     with current_app.app_context():
         yield
 
-def update_status(training_id, status):
-    print("update")
-    query_db('UPDATE Training SET status = ? WHERE training_id = ?', (status, training_id), commit=True)  
-
 def worker():
     while True:
         task_info = db_queue.get()
         with app_context():
             try:
-                train(task_info)
+                train()
             finally:
                 db_queue.task_done()
 
 
 ### Training Function ###
-def train(task_info):
+def train():
     current_app.logger.info('Training')
     # update_status(training_id, 'in progress')
 
     # train
-    train(task_info)
+    algo_train()
 
     # update_status(training_id, 'finished')
     current_app.logger.info('Done training')
-    print(f"Training for project {task_info} done at {datetime.now()}")
+    print(f"Training done at {datetime.now()}")
 
 
 ### API Endpoints ###
 @train_blueprint.route('/training', methods=['POST'])
-def start_training(project_id):
-  
-    db_queue.put(project_id)
+def start_training():
+
+    db_queue.put(1)
 
     return jsonify({"message": "Training started successfully"}), 202
 

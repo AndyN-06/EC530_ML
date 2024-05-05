@@ -28,17 +28,21 @@ function LoginPage(){
         navigate('/register');
     };
 
-    const handleGoToHome = () => {
-        navigate('/homepage');
-    };
+    // const handleGoToHome = () => {
+    //     navigate('/homepage');
+    // };
 
-    const handleGoToProject = () => {
-        navigate('/project');
-    };
+    // const handleGoToProject = () => {
+    //     navigate('/project');
+    // };
 
-    const handleGoToImage = () => {
-        navigate('/image');
-    }
+    // const handleGoToImage = () => {
+    //     navigate('/image');
+    // };
+
+    // const handleGoToTest = () => {
+    //     navigate('/test');
+    // }
 
     return (
         <div className="login-container">
@@ -61,7 +65,7 @@ function LoginPage(){
                 </button>
                 <button type="submit" className="btn-login">Login</button>
             </form>
-            <button type="button" className="btn-register" onClick={handleGoToHome}>
+            {/* <button type="button" className="btn-register" onClick={handleGoToHome}>
                 Go to homepage
             </button>
             <button type="button" className="btn-register" onClick={handleGoToProject}>
@@ -70,6 +74,9 @@ function LoginPage(){
             <button type="button" className="btn-register" onClick={handleGoToImage}>
                 Go to image page
             </button>
+            <button type="button" className="btn-register" onClick={handleGoToTest}>
+                Go to test page
+            </button> */}
         </div>
     );
 }

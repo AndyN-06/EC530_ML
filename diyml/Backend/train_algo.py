@@ -8,7 +8,7 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 from sklearn.model_selection import train_test_split
 import os
 
-def train(project_id):
+def train():
     # database connection
     DB = 'ml.db'
     DATABASE = os.path.join(os.path.dirname(__file__), DB)
@@ -16,7 +16,7 @@ def train(project_id):
     cursor = conn.cursor()
 
     # get data from database
-    cursor.execute("SELECT image, label FROM Images WHERE project_id = ?", (project_id))
+    cursor.execute("SELECT image, label FROM Images")
     rows = cursor.fetchall()
 
     # lists to hold images and labels
