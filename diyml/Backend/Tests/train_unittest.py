@@ -1,8 +1,8 @@
 import unittest
 from flask_testing import TestCase
-from my_flask_app import create_app, db  # Adjust this import to fit your actual app structure
+from my_flask_app import create_app, db 
 from flask import json
-from my_flask_app.models import Project  # Adjust this import based on your models
+from my_flask_app.models import Project
 
 class TestTrainingAPI(TestCase):
     def create_app(self):

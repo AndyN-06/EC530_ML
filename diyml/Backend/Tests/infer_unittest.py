@@ -3,8 +3,8 @@ from flask_testing import TestCase
 from flask import Flask, json
 from werkzeug.datastructures import FileStorage
 import io
-from my_flask_app import create_app, db  # Adjust this import to fit your actual app structure
-from my_flask_app.models import Model, Inference  # Adjust these imports based on your models
+from my_flask_app import create_app, db
+from my_flask_app.models import Model, Inference
 
 class TestInferenceAPI(TestCase):
     def create_app(self):

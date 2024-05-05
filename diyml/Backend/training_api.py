@@ -42,7 +42,7 @@ def app_context():
 def worker():
     while True:
         task_info = db_queue.get()
-        with app_context():
+        with current_app.app_context():
             try:
                 train()
             finally:

@@ -1,7 +1,7 @@
 import unittest
 from flask_testing import TestCase
-from my_flask_app import create_app, db  # Adjust the import according to your actual application structure
-from my_flask_app.models import User    # Assuming you have a User model
+from my_flask_app import create_app, db 
+from my_flask_app.models import User
 
 class TestUserAPI(TestCase):
     def create_app(self):
