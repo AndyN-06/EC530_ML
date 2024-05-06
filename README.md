@@ -98,10 +98,12 @@ Once you create your model, you can test it by attaching a image for it to ident
 Download React and Docker Desktop
 
 In diyml/Client, run:
-'''bash
+```bash
 npm start
+```
 
 In diyml/Backend, run:
-'''bash
+```bash
 docker build -t "appname" .
 docker run -p 5000:5000 "appname"
+```
